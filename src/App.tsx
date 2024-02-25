@@ -7,30 +7,50 @@ import Board from "./components/Board";
 
 const Wrapper = styled.div`
   display: flex;
-  max-width: 680px;
-  width: 100%;
+  width: 100vw;
   margin: 0 auto;
   justify-content: center;
   align-items: center;
   height: 100vh;
 `;
 const Boards = styled.div`
-  display: grid;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
   width: 100%;
-  grid-template-columns: repeat(3, 1fr);
+
   gap: 10px;
 `;
 
 function App() {
   const [toDos, setTodos] = useRecoilState(toDoState);
-  const onDragEnd = ({ draggableId, destination, source }: DropResult) => {
+  const onDragEnd = (info: DropResult) => {
+    const { destination, draggableId, source } = info;
+    console.log(info);
     if (!destination) return;
-    // setTodos((oldTodos) => {
-    //   const copyTodos = [...oldTodos];
-    //   copyTodos.splice(source.index, 1);
-    //   copyTodos.splice(destination?.index, 0, draggableId);
-    //   return copyTodos;
-    // });
+    if (destination?.droppableId === source.droppableId) {
+      setTodos((allBoards) => {
+        const boardCopy = [...allBoards[source.droppableId]];
+        const taskObj = boardCopy[source.index];
+        boardCopy.splice(source.index, 1);
+        boardCopy.splice(destination.index, 0, taskObj);
+        return { ...allBoards, [source.droppableId]: boardCopy };
+      });
+    }
+    if (destination.droppableId !== source.droppableId) {
+      setTodos((allBoards) => {
+        const sourceBoard = [...allBoards[source.droppableId]];
+        const taskObj = sourceBoard[source.index];
+        const targetBoard = [...allBoards[destination.droppableId]];
+        sourceBoard.splice(source.index, 1);
+        targetBoard.splice(destination.index, 0, taskObj);
+        return {
+          ...allBoards,
+          [source.droppableId]: sourceBoard,
+          [destination.droppableId]: targetBoard,
+        };
+      });
+    }
   };
 
   return (
